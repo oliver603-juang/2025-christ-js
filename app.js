@@ -181,7 +181,7 @@ const useItineraryCalculation = (
                   (displayWalkMins % 60) +
                   "m"
                 : displayWalkMins + "m",
-            navLink: `http://googleusercontent.com/maps.google.com/dir/?api=1&origin=${
+            navLink: `https://www.google.com/maps/dir/?api=1&origin=${
               spot.lat
             },${spot.lon}&destination=${nextSpot.lat},${
               nextSpot.lon
@@ -199,7 +199,7 @@ const useItineraryCalculation = (
           nextStop: nextStopInfo,
           nextArrivalTime: nextArrivalTimeStr,
           mapcodeDisplay: spot.mapCode || "GPS",
-          gmapLink: `http://googleusercontent.com/maps.google.com/search/?api=1&query=${spot.lat},${spot.lon}`,
+          gmapLink: `https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}`,
           weather: "sunny",
           temp: "10°C",
           ticket: spot.ticket || null,
@@ -994,7 +994,7 @@ const InfoTab = () => {
               key={i}
               onClick={() =>
                 window.open(
-                  `http://googleusercontent.com/maps.google.com/search?q=${encodeURIComponent(
+                  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
                     btn.query
                   )}`,
                   "_blank"
