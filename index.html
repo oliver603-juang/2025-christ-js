@@ -7,7 +7,9 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>2025 聖誕夜桃園之旅 | Tokyo Winter Trip</title>
-
+	<link rel="manifest" href="manifest.json">
+	<meta name="theme-color" content="#E4C2C1">
+	<link rel="apple-touch-icon" href="icon-192.png">
     <script
       crossorigin
       src="https://unpkg.com/react@18/umd/react.production.min.js"
@@ -999,5 +1001,16 @@
       // 載入 Main App
     </script>
     <script type="text/babel" src="app.js"></script>
+	<script>
+    if ('serviceWorker' in navigator) {
+			window.addEventListener('load', () => {
+				navigator.serviceWorker.register('service-worker.js')
+					.then(reg => console.log('PWA Service Worker registered!', reg))
+					.catch(err => console.log('PWA registration failed:', err));
+			});
+		}
+	</script>
+
   </body>
 </html>
+
