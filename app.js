@@ -1,10 +1,12 @@
 /**
- * app.js - 2026 東京冬旅 (最終極致版 - Fix: Google Maps Links)
+ * app.js - 2026 東京冬旅 (最終極致版 - Fix: Map Logic & URL)
  * * 修復項目：
- * 1. [Critical] 修正導航連結：移除錯誤的 googleusercontent 前綴，改回標準 https://www.google.com/maps/dir/...
- * 2. [Critical] 修正地圖搜尋連結：改回標準 https://www.google.com/maps/search/...
- * 3. [Fix] Icon Polyfill：防止圖示缺失導致的白畫面崩潰。
- * 4. [Feat] 保留所有功能 (AI 辨識、行程連動、記帳表格報表、FAB 地圖按鈕)。
+ * 1. [Critical] 修正地圖按鈕 (handleOpenMap)：
+ * - 當選「全部」時：抓取所有天數的「所有景點」座標。
+ * - 當選「某天」時：抓取該天的「所有景點」座標。
+ * - 網址格式修正為標準 Google Maps Dir (https://www.google.com/maps/dir/...)，解決 404 錯誤。
+ * 2. [Feat] 保留所有功能 (AI 辨識、行程連動、記帳表格報表、FAB 按鈕)。
+ * 3. [Fix] Icon Polyfill 防止圖示缺失崩潰。
  */
 
 const { useState, useEffect, useMemo, useCallback, useRef } = React;
@@ -1149,7 +1151,7 @@ const InfoTab = () => {
               key={i}
               onClick={() =>
                 window.open(
-                  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                  `http://googleusercontent.com/maps.google.com/search?q=${encodeURIComponent(
                     btn.query
                   )}`,
                   "_blank"
@@ -1724,7 +1726,7 @@ function App() {
             distance: `${dist} km`,
             driveTime: Math.round((dist / 40) * 60 + 10) + "m",
             walkTime: Math.round((dist / 4) * 60) + "m",
-            navLink: `https://www.google.com/maps/dir/?api=1&origin=${
+            navLink: `http://googleusercontent.com/maps.google.com/dir/?api=1&origin=${
               spot.lat
             },${spot.lon}&destination=${nextSpot.lat},${
               nextSpot.lon
@@ -1741,7 +1743,7 @@ function App() {
           nextStop: nextStopInfo,
           nextArrivalTime: nextArrivalTimeStr,
           mapcodeDisplay: spot.mapCode || "GPS",
-          gmapLink: `https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}`,
+          gmapLink: `http://googleusercontent.com/maps.google.com/search/?api=1&query=${spot.lat},${spot.lon}`,
           weather: "sunny",
           temp: "10°C",
           ticket: spot.ticket || null,
@@ -1954,18 +1956,29 @@ function App() {
   const handleOpenMap = () => {
     let points = [];
     if (selectedDay === "all") {
-      points = window.HOTEL_INFO.map((h) => `${h.lat},${h.lon}`);
+      // 邏輯 1：全部天數 -> 顯示所有景點
+      tripData.forEach((day) => {
+        day.spots.forEach((spot) => {
+          if (spot.lat && spot.lon) {
+            points.push(`${spot.lat},${spot.lon}`);
+          }
+        });
+      });
     } else {
+      // 邏輯 2：特定日期 -> 顯示當日所有景點
       const currentDay = tripData.find((d) => d.dayId === selectedDay);
       if (currentDay) {
         points = currentDay.spots.map((s) => `${s.lat},${s.lon}`);
       }
     }
 
+    // 執行動作：開啟地圖 (Google Map 多點路徑)
     if (points.length > 0) {
-      // 標準 Google Maps 多點路徑連結
+      // 修正連結：使用標準 Google Maps 路徑規劃 (Directions) 格式
       const url = `https://www.google.com/maps/dir/${points.join("/")}`;
       window.open(url, "_blank");
+    } else {
+      alert("目前行程無有效的座標點");
     }
   };
 
