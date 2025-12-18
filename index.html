@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>2026 東京冬旅手帳 | Tokyo Winter Trip</title>
+
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18/umd/react.production.min.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
+    ></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"
+    ></script>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@500&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* --- 莫蘭迪粉色系主題變數 --- */
+      :root {
+        --bg-main: #f9f7f5; /* 溫暖米白背景 */
+        --bg-glass: rgba(255, 255, 255, 0.85);
+        --card-bg: #ffffff; /* 純白卡片 */
+
+        --text-main: #4a4a4a; /* 深灰主字 */
+        --text-secondary: #8c8c8c; /* 淺灰副字 */
+
+        /* Morandi Colors */
+        --accent-pink: #e4c2c1; /* 莫蘭迪粉 (主按鈕) */
+        --accent-pink-hover: #d69e9d;
+
+        --accent-green: #a9bfa8; /* 莫蘭迪綠 (導航/地圖) */
+        --accent-green-hover: #8F/A68E;
+
+        --accent-blue: #a2c4c9; /* 莫蘭迪藍 (資訊) */
+        --accent-yellow: #e8d595; /* 莫蘭迪黃 (亮點) */
+
+        --border-color: #efefef;
+      }
+
+      /* --- 基礎樣式 --- */
+      body {
+        font-family: "Noto Sans TC", sans-serif;
+        background-color: var(--bg-main);
+        color: var(--text-main);
+        margin: 0;
+        /* 移除星空背景，改為純淨色或微紋理 */
+        background-image: radial-gradient(#e8e8e8 1px, transparent 1px);
+        background-size: 20px 20px;
+      }
+
+      /* 玻璃擬態/卡片樣式優化 */
+      .glass-panel {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); /* 柔和陰影 */
+      }
+
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      /* 輸入框樣式重置為淺色 */
+      input,
+      select,
+      textarea {
+        background-color: #f3f4f6 !important; /* bg-gray-100 */
+        color: #374151 !important; /* text-gray-700 */
+        border: 1px solid #e5e7eb !important;
+      }
+      input:focus,
+      select:focus,
+      textarea:focus {
+        border-color: var(--accent-pink) !important;
+        background-color: #fff !important;
+      }
+
+      /* Loading 動畫 */
+      .typing-indicator span {
+        animation: blink 1.4s infinite both;
+      }
+      .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+      @keyframes blink {
+        0% {
+          opacity: 0.2;
+        }
+        20% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0.2;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+      // ==========================================
+      // 全域資料設定 (Global Config for app.js)
+      // ==========================================
+
+      window.APP_LOGO = "logo.jpg"; // 請確保與您的檔案名稱一致
+
+      window.CURRENCY_OPTIONS = [
+        { code: "TWD", symbol: "NT$", label: "台幣" },
+        { code: "JPY", symbol: "¥", label: "日幣" },
+        { code: "USD", symbol: "$", label: "美金" },
+      ];
+
+      window.STAY_OPTIONS = [
+        "30 min",
+        "1 hr",
+        "1.5 hr",
+        "2 hr",
+        "2.5 hr",
+        "3 hr",
+        "4 hr",
+        "5 hr",
+        "Overnight",
+        "-",
+      ];
+
+      // --- 範例行程資料 (可替換) ---
+      window.RAW_KML_DATA = [
+        {
+          dayId: "day1",
+          date: "12/24 (三)",
+          title: "聖誕夜桃園之旅",
+          themeColor: "bg-[#E4C2C1]", // 莫蘭迪粉
+          spots: [
+            {
+              name: "溫暖的家",
+              lat: 25.0665752,
+              lon: 121.5103617,
+              desc: "旅程起點，準備出發！",
+              mapCode: "GPS",
+            },
+            {
+              name: "HARD OFF海德沃福 桃園中壢店",
+              lat: 24.9712911,
+              lon: 121.252971,
+              desc: "日本二手連鎖店巡禮，尋寶趣。",
+              mapCode: "GPS",
+            },
+            {
+              name: "石門水庫福華渡假飯店",
+              lat: 24.8177389,
+              lon: 121.2430134,
+              desc: "入住石門水庫旁，享受聖誕氛圍。",
+              mapCode: "GPS",
+            },
+          ],
+        },
+        {
+          dayId: "day2",
+          date: "12/25 (四)",
+          title: "龍潭創意與活力探索",
+          themeColor: "bg-[#A9BFA8]", // 莫蘭迪綠
+          spots: [
+            {
+              name: "雄獅文具-想像力製造所",
+              lat: 24.8418681,
+              lon: 121.1962665,
+              desc: "色彩與創意的體驗觀光工廠。",
+              mapCode: "GPS",
+              ticket: { adult: 500, child: 300 },
+            },
+            {
+              name: "龍潭運動公園兒童遊戲場",
+              lat: 24.868033,
+              lon: 121.2187586,
+              desc: "讓孩子盡情放電的戶外空間。",
+              mapCode: "GPS",
+            },
+            {
+              name: "溫暖的家",
+              lat: 25.0665752,
+              lon: 121.5103617,
+              desc: "平安返家。",
+              mapCode: "GPS",
+            },
+          ],
+        },
+      ];
+
+      // --- 航班與住宿資訊 ---
+      window.FLIGHT_INFO = {
+        outbound: {
+          flight: "Drive",
+          airline: "自駕前往",
+          from: "台北",
+          to: "桃園",
+          dep: "09:30",
+          arr: "11:00",
+          date: "12/24 (三)",
+          duration: "1h 30m",
+        },
+        inbound: {
+          flight: "Drive",
+          airline: "自駕返程",
+          from: "龍潭",
+          to: "台北",
+          dep: "16:00",
+          arr: "17:30",
+          date: "12/25 (四)",
+          duration: "1h 30m",
+        },
+      };
+
+      window.HOTEL_INFO = [
+        {
+          day: "12/24",
+          name: "石門水庫福華渡假飯店",
+          location: "桃園龍潭",
+          desc: "湖景度假飯店",
+          link: "http://googleusercontent.com/maps.google.com/search?q=石門水庫福華渡假飯店",
+          lat: 24.8177389,
+          lon: 121.2430134,
+        },
+      ];
+
+      // --- 圖標庫 (Icons) ---
+      window.Icons = {
+        // 👇👇👇 請補上這一行 👇👇👇
+        Loader2: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+          </svg>
+        ),
+
+        Plane: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="M2 12h5" />
+            <path d="M13 12h3" />
+            <path d="M19.74 7.33a2.3 2.3 0 0 1 2.93 2.93l-3.33 3.33a2.3 2.3 0 0 1-3.25 0l-7.34-7.34a2.3 2.3 0 0 1 0-3.25l3.33-3.33z" />
+            <path d="M14.66 14.66 9 22H2l2.5-9" />
+            <path d="M7 17l-5 5" />
+          </svg>
+        ),
+        Smile: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+            <line x1="9" x2="9.01" y1="9" y2="9" />
+            <line x1="15" x2="15.01" y1="9" y2="9" />
+          </svg>
+        ),
+        List: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <line x1="8" x2="21" y1="6" y2="6" />
+            <line x1="8" x2="21" y1="12" y2="12" />
+            <line x1="8" x2="21" y1="18" y2="18" />
+            <line x1="3" x2="3.01" y1="6" y2="6" />
+            <line x1="3" x2="3.01" y1="12" y2="12" />
+            <line x1="3" x2="3.01" y1="18" y2="18" />
+          </svg>
+        ),
+        LayoutGrid: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <rect width="7" height="7" x="3" y="3" rx="1" />
+            <rect width="7" height="7" x="14" y="3" rx="1" />
+            <rect width="7" height="7" x="14" y="14" rx="1" />
+            <rect width="7" height="7" x="3" y="14" rx="1" />
+          </svg>
+        ),
+        Calculator: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <rect width="16" height="20" x="4" y="2" rx="2" />
+            <line x1="8" x2="16" y1="6" y2="6" />
+            <line x1="16" x2="16" y1="14" y2="18" />
+            <path d="M16 10h.01" />
+            <path d="M12 10h.01" />
+            <path d="M8 10h.01" />
+            <path d="M12 14h.01" />
+            <path d="M8 14h.01" />
+            <path d="M12 18h.01" />
+            <path d="M8 18h.01" />
+          </svg>
+        ),
+        Clock: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+        ),
+        Wallet: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+            <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
+          </svg>
+        ),
+        MapPin: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+        ),
+        Ticket: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" />
+            <path d="M13 5v2" />
+            <path d="M13 17v2" />
+            <path d="M13 11v2" />
+          </svg>
+        ),
+        Navigation2: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <polygon points="12 2 19 21 12 17 5 21 12 2" />
+          </svg>
+        ),
+        Settings: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.51a2 2 0 0 1 1-1.72l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        ),
+        Sparkles: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+            <path d="M5 3v4" />
+            <path d="M9 3v4" />
+            <path d="M3 5h4" />
+            <path d="M3 9h4" />
+          </svg>
+        ),
+        Check: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        ),
+        X: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="M18 6 6 18" />
+            <path d="m6 6 12 12" />
+          </svg>
+        ),
+        Sun: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2" />
+            <path d="M12 20v2" />
+            <path d="m4.93 4.93 1.41 1.41" />
+            <path d="m17.66 17.66 1.41 1.41" />
+            <path d="M2 12h2" />
+            <path d="M20 12h2" />
+            <path d="m6.34 17.66-1.41 1.41" />
+            <path d="m19.07 4.93-1.41 1.41" />
+          </svg>
+        ),
+        CloudSnow: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+            <path d="M8 15h.01" />
+            <path d="M8 19h.01" />
+            <path d="M12 17h.01" />
+            <path d="M12 21h.01" />
+            <path d="M16 15h.01" />
+            <path d="M16 19h.01" />
+          </svg>
+        ),
+        Cloud: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="M17.5 19c0-1.7-1.3-3-3-3h-1.1c-.2-3.4-3.1-6-6.5-6-3.7 0-6.6 2.8-6.9 6.4h-.1C2.1 16.4 0 18.5 0 21c0 2.2 1.8 4 4 4h13.5c2.2 0 4-1.8 4-4" />
+          </svg>
+        ),
+        Car: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H7.7c-.7 0-1.3.3-1.8.7-.9.9-2.2 2.3-2.2 2.3S1 10.6 1 11.1c-.8.2-1.5 1-1.5 1.9v3c0 .6.4 1 1 1h2" />
+            <path d="M2.5 17a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5Z" />
+            <path d="M16.5 17a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5Z" />
+            <path d="M12 9V6" />
+          </svg>
+        ),
+        Footprints: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="M4 16v-2.38C4 11.5 2.97 10.5 3 8c.03-2.72 1.49-6 4.5-6C9.37 2 11 3.8 11 8c0 1.25-.38 2-1.28 2.55-.4.25-.72.82-.72 1.25V16a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-2.38c0-2.12 1.03-3.12 1-5.62-.03-2.72-1.49-6-4.5-6C14.63 2 13 3.8 13 8c0 1.25.38 2 1.28 2.55.4.25.72.82.72 1.25V16a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2z" />
+          </svg>
+        ),
+        Navigation: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <polygon points="3 11 22 2 13 21 11 13 3 11" />
+          </svg>
+        ),
+        ExternalLink: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+            <polyline points="15 3 21 3 21 9" />
+            <line x1="10" x2="21" y1="14" y2="3" />
+          </svg>
+        ),
+        Mail: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <rect width="20" height="16" x="2" y="4" rx="2" />
+            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+          </svg>
+        ),
+        ArrowDown: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="M12 5v14" />
+            <path d="m19 12-7 7-7-7" />
+          </svg>
+        ),
+        ArrowRightLeft: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="m16 3 4 4-4 4" />
+            <path d="M20 7H4" />
+            <path d="m8 21-4-4 4-4" />
+            <path d="M4 17h16" />
+          </svg>
+        ),
+        Search: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+        ),
+        Hotel: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="M18 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z" />
+            <path d="M7 2v18" />
+            <path d="M17 2v18" />
+            <path d="M2 12h20" />
+            <path d="M2 17h20" />
+          </svg>
+        ),
+        Fuel: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <line x1="3" x2="15" y1="22" y2="22" />
+            <line x1="4" x2="14" y1="9" y2="9" />
+            <path d="M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18" />
+            <path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5" />
+          </svg>
+        ),
+        Store: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7" />
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+            <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4" />
+            <path d="M2 7h20" />
+            <path d="M22 7v3a2 2 0 0 1-2 2v0a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12v0a2 2 0 0 1-2-2V7" />
+          </svg>
+        ),
+        Bot: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="M12 8V4H8" />
+            <rect width="16" height="12" x="4" y="8" rx="2" />
+            <path d="M2 14h2" />
+            <path d="M20 14h2" />
+            <path d="M15 13v2" />
+            <path d="M9 13v2" />
+          </svg>
+        ),
+        Camera: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+            <circle cx="12" cy="13" r="3" />
+          </svg>
+        ),
+        Image: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+            <circle cx="9" cy="9" r="2" />
+            <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
+          </svg>
+        ),
+        Utensils: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" />
+            <path d="M7 2v20" />
+            <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
+          </svg>
+        ),
+        LocateFixed: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <line x1="2" x2="5" y1="12" y2="12" />
+            <line x1="19" x2="22" y1="12" y2="12" />
+            <line x1="12" x2="12" y1="2" y2="5" />
+            <line x1="12" x2="12" y1="19" y2="22" />
+            <circle cx="12" cy="12" r="7" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        ),
+        Shield: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+        ),
+        ShoppingBasket: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="m5 11 4-7" />
+            <path d="m19 11-4-7" />
+            <path d="M2 11h20" />
+            <path d="m3.5 11 1.6 7.4a2 2 0 0 0 2 1.6h9.8c.9 0 1.8-.7 2-1.6l1.7-7.4" />
+            <path d="m9 11 1 9" />
+            <path d="m4.5 11 .1 8.1" />
+            <path d="m19.5 11-.1 8.1" />
+            <path d="m15 11-1 9" />
+          </svg>
+        ),
+        Star: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+          </svg>
+        ),
+        ShoppingBag: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+            <path d="M3 6h18" />
+            <path d="M16 10a4 4 0 0 1-8 0" />
+          </svg>
+        ),
+        Coffee: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <path d="M10 2v2" />
+            <path d="M14 2v2" />
+            <path d="M6 2v2" />
+            <path d="M18 8a1 1 0 0 1 1 1v2a3 3 0 0 1-3 3h-2.95a1 1 0 0 0-.768.369l-.254.332a4 4 0 0 1-3.26 1.623 4 4 0 0 1-3.296-1.402l-.125-.153A1 1 0 0 0 4.35 14H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1h14z" />
+            <path d="M18 14v1a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-1" />
+          </svg>
+        ),
+        Gift: (props) => (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            {...props}
+          >
+            <rect x="3" y="8" width="18" height="4" rx="1" />
+            <path d="M12 8v13" />
+            <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" />
+            <path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.9 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5" />
+          </svg>
+        ),
+      };
+
+      // 載入 Main App
+    </script>
+    <script type="text/babel" src="app.js"></script>
+  </body>
+</html>
