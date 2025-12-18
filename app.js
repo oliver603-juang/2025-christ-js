@@ -1,9 +1,10 @@
 /**
- * app.js - 2026 東京冬旅 (防崩潰修復版)
- * * 修復重點：
- * 1. [Fix] 新增 Icon Polyfill：自動補全 Map, Image, Loader2 等圖示，解決 React Error #130 崩潰問題。
- * 2. [Feat] 完整保留地圖 FAB 按鈕與所有導航、記帳功能。
- * 3. [Fix] 確保 Google Maps 連結格式正確。
+ * app.js - 2026 東京冬旅 (最終極致版 - Fix: Google Maps Links)
+ * * 修復項目：
+ * 1. [Critical] 修正導航連結：移除錯誤的 googleusercontent 前綴，改回標準 https://www.google.com/maps/dir/...
+ * 2. [Critical] 修正地圖搜尋連結：改回標準 https://www.google.com/maps/search/...
+ * 3. [Fix] Icon Polyfill：防止圖示缺失導致的白畫面崩潰。
+ * 4. [Feat] 保留所有功能 (AI 辨識、行程連動、記帳表格報表、FAB 地圖按鈕)。
  */
 
 const { useState, useEffect, useMemo, useCallback, useRef } = React;
@@ -13,8 +14,6 @@ const { useState, useEffect, useMemo, useCallback, useRef } = React;
 // ============================================================================
 (function ensureIcons() {
   if (!window.Icons) window.Icons = {};
-  const missingIcon = (name) =>
-    console.warn(`Icon ${name} is missing, using fallback.`);
 
   // 補全可能缺失的關鍵圖示
   if (!window.Icons.Map)
@@ -320,7 +319,6 @@ const ExpenseModal = ({
               placeholder="0"
             />
             <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-              {/* Gallery Upload */}
               <div className="relative">
                 <input
                   type="file"
@@ -342,7 +340,6 @@ const ExpenseModal = ({
                   <Icons.Image size={20} />
                 </label>
               </div>
-              {/* Camera Upload */}
               <div className="relative">
                 <input
                   type="file"
@@ -1727,7 +1724,7 @@ function App() {
             distance: `${dist} km`,
             driveTime: Math.round((dist / 40) * 60 + 10) + "m",
             walkTime: Math.round((dist / 4) * 60) + "m",
-            navLink: `http://googleusercontent.com/maps.google.com/dir/?api=1&origin=${
+            navLink: `https://www.google.com/maps/dir/?api=1&origin=${
               spot.lat
             },${spot.lon}&destination=${nextSpot.lat},${
               nextSpot.lon
@@ -1744,7 +1741,7 @@ function App() {
           nextStop: nextStopInfo,
           nextArrivalTime: nextArrivalTimeStr,
           mapcodeDisplay: spot.mapCode || "GPS",
-          gmapLink: `http://googleusercontent.com/maps.google.com/search/?api=1&query=${spot.lat},${spot.lon}`,
+          gmapLink: `https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}`,
           weather: "sunny",
           temp: "10°C",
           ticket: spot.ticket || null,
@@ -1953,7 +1950,7 @@ function App() {
     setQuotaStatus({ type: "normal", text: "完成" });
   };
 
-  // --- NEW: 地圖開啟邏輯 (Fix) ---
+  // --- NEW: 地圖開啟邏輯 ---
   const handleOpenMap = () => {
     let points = [];
     if (selectedDay === "all") {
