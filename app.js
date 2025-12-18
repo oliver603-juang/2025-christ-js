@@ -1,12 +1,11 @@
 /**
- * app.js - 2026 東京冬旅 (最終極致版 - Fix: Map Logic & URL)
+ * app.js - 2026 東京冬旅 (最終極致版 - Fix: All Google Map Links)
  * * 修復項目：
- * 1. [Critical] 修正地圖按鈕 (handleOpenMap)：
- * - 當選「全部」時：抓取所有天數的「所有景點」座標。
- * - 當選「某天」時：抓取該天的「所有景點」座標。
- * - 網址格式修正為標準 Google Maps Dir (https://www.google.com/maps/dir/...)，解決 404 錯誤。
- * 2. [Feat] 保留所有功能 (AI 辨識、行程連動、記帳表格報表、FAB 按鈕)。
- * 3. [Fix] Icon Polyfill 防止圖示缺失崩潰。
+ * 1. [Critical] InfoTab 周邊機能：修正為 https://www.google.com/maps/search/?api=1&query=...
+ * 2. [Critical] FAB 三折地圖：修正為 https://www.google.com/maps/dir/座標1/座標2...
+ * 3. [Critical] 行程導航：修正為 https://www.google.com/maps/dir/?api=1&origin=...
+ * 4. [Feat] 保留所有功能 (AI 辨識、行程連動、記帳表格報表、FAB 地圖按鈕)。
+ * 5. [Fix] Icon Polyfill 防止崩潰。
  */
 
 const { useState, useEffect, useMemo, useCallback, useRef } = React;
@@ -1151,7 +1150,7 @@ const InfoTab = () => {
               key={i}
               onClick={() =>
                 window.open(
-                  `http://googleusercontent.com/maps.google.com/search?q=${encodeURIComponent(
+                  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
                     btn.query
                   )}`,
                   "_blank"
@@ -1726,7 +1725,7 @@ function App() {
             distance: `${dist} km`,
             driveTime: Math.round((dist / 40) * 60 + 10) + "m",
             walkTime: Math.round((dist / 4) * 60) + "m",
-            navLink: `http://googleusercontent.com/maps.google.com/dir/?api=1&origin=${
+            navLink: `https://www.google.com/maps/dir/?api=1&origin=${
               spot.lat
             },${spot.lon}&destination=${nextSpot.lat},${
               nextSpot.lon
@@ -1743,7 +1742,7 @@ function App() {
           nextStop: nextStopInfo,
           nextArrivalTime: nextArrivalTimeStr,
           mapcodeDisplay: spot.mapCode || "GPS",
-          gmapLink: `http://googleusercontent.com/maps.google.com/search/?api=1&query=${spot.lat},${spot.lon}`,
+          gmapLink: `https://www.google.com/maps/search/?api=1&query=${spot.lat},${spot.lon}`,
           weather: "sunny",
           temp: "10°C",
           ticket: spot.ticket || null,
@@ -1974,7 +1973,8 @@ function App() {
 
     // 執行動作：開啟地圖 (Google Map 多點路徑)
     if (points.length > 0) {
-      // 修正連結：使用標準 Google Maps 路徑規劃 (Directions) 格式
+      // 標準 Google Maps 多點路徑連結
+      // https://www.google.com/maps/dir/座標1/座標2/...
       const url = `https://www.google.com/maps/dir/${points.join("/")}`;
       window.open(url, "_blank");
     } else {
