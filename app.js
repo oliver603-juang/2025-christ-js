@@ -1,5 +1,5 @@
 /**
- * app.js - 2026 東京冬旅 (最終極致版 - Fix: All Google Map Links)
+ * app.js - 2025聖誕石門福華 (最終極致版 - Fix: All Google Map Links)
  * * 修復項目：
  * 1. [Critical] InfoTab 周邊機能：修正為 https://www.google.com/maps/search/?api=1&query=...
  * 2. [Critical] FAB 三折地圖：修正為 https://www.google.com/maps/dir/座標1/座標2...
@@ -2154,3 +2154,4 @@ function App() {
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(<App />);
+
