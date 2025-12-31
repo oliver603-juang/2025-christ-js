@@ -1,6 +1,6 @@
 {
-  "name": "2026 東京冬旅手帳",
-  "short_name": "東京冬旅",
+  "name": "2025聖誕石門福華",
+  "short_name": "聖誕石門福華",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#F9F7F5",
@@ -17,4 +17,5 @@
       "type": "image/png"
     }
   ]
+
 }
